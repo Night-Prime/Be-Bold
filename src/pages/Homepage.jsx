@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import Navbar from "../components/layout/Navbar";
+import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { productsApi } from "../api/client";
+import { useCart } from "../context/CartContext";
 import { ChevronDown, Sparkles, ArrowRight, Instagram, Facebook, Twitter, Mail, Phone, MapPin, Star, Heart } from "lucide-react";
 import heroBackground from "../assets/images/background-4.jpeg";
 import heroBackground2 from "../assets/images/background-1.jpeg";
@@ -21,6 +23,7 @@ export default function Homepage() {
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
     const [email, setEmail] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const { add } = useCart();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -40,44 +43,16 @@ export default function Homepage() {
         return () => clearInterval(interval);
     }, []);
 
-    const products = [
-        {
-            id: 1,
-            name: "ESTHER'S COURAGE",
-            description: "Velvet Lip Gloss",
-            size: "4.2 oz / 120ml",
-            price: "₦5,000",
-            image: product1,
-            scripture: "For such a time as this - Esther 4:14"
-        },
-        {
-            id: 2,
-            name: "RUTH'S LOYALTY",
-            description: "Satin Lip Liner",
-            size: "0.04 oz / 1.2g",
-            price: "₦5,000",
-            image: product2,
-            scripture: "Where you go I will go - Ruth 1:16"
-        },
-        {
-            id: 3,
-            name: "DEBORAH'S STRENGTH",
-            description: "Matte Lip Gloss",
-            size: "4.2 oz / 120ml",
-            price: "₦5,000",
-            image: product3,
-            scripture: "She leads with courage - Judges 4:4"
-        },
-        {
-            id: 4,
-            name: "MARY'S GRACE",
-            description: "Shimmer Lip Gloss",
-            size: "4.2 oz / 120ml",
-            price: "₦5,000",
-            image: product4,
-            scripture: "Blessed among women - Luke 1:42"
-        }
+    const fallback = [
+        { id: '00000000-0000-0000-0000-000000000001', name: "ESTHER'S COURAGE", description: "Velvet Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product1, scripture: "For such a time as this - Esther 4:14" },
+        { id: '00000000-0000-0000-0000-000000000002', name: "RUTH'S LOYALTY", description: "Satin Lip Liner", size: "0.04 oz / 1.2g", price: 5000, image: product2, scripture: "Where you go I will go - Ruth 1:16" },
+        { id: '00000000-0000-0000-0000-000000000003', name: "DEBORAH'S STRENGTH", description: "Matte Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product3, scripture: "She leads with courage - Judges 4:4" },
+        { id: '00000000-0000-0000-0000-000000000004', name: "MARY'S GRACE", description: "Shimmer Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product4, scripture: "Blessed among women - Luke 1:42" }
     ];
+    const imageMap = { '/product-1.jpeg': product1, '/product-5.jpeg': product2, '/product-3.jpeg': product3, '/product-4.jpeg': product4 };
+    const resolveImage = (img) => imageMap[img] || img;
+    const [products, setProducts] = useState(fallback);
+    useEffect(() => { productsApi.list({ featured: true }).then(d => { const src = d.length ? d : fallback; setProducts(src.map(p => ({ ...p, image: resolveImage(p.image), scripture: p.description?.slice(0, 60) || p.scripture }))); }).catch(() => {}); }, []);
 
     const reasons = [
         {
@@ -250,7 +225,6 @@ export default function Homepage() {
 
     return (
         <div>
-            <Navbar />
 
             {/* Hero Section */}
             <section
@@ -372,14 +346,14 @@ export default function Homepage() {
                                 SHOP THE COLLECTION
                             </motion.a>
 
-                            <motion.a
+                            {/* <motion.a
                                 href="#about"
                                 whileHover={{ scale: 1.05, borderColor: "rgba(243, 232, 255, 1)" }}
                                 whileTap={{ scale: 0.95 }}
                                 className="px-8 py-4 bg-transparent text-purple100 font-bold rounded-full border-2 border-purple100/50 hover:bg-purple100/10 transition-all duration-300"
                             >
                                 OUR STORY
-                            </motion.a>
+                            </motion.a> */}
                         </motion.div>
 
                         {/* Social Proof */}
@@ -418,8 +392,8 @@ export default function Homepage() {
             </section>
 
             {/* Shop Section */}
-            <section id="shop" className="py-20 bg-purple50">
-                <div className="max-w-8xl mx-auto px-16">
+            <section id="shop" className="py-12 sm:py-20 bg-purple50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Section Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -431,14 +405,13 @@ export default function Homepage() {
                         <h2 className="text-3xl md:text-4xl font-bold text-purple900 tracking-wide uppercase">
                             Best Sellers
                         </h2>
-                        <motion.a
-                            href="/shop"
-                            whileHover={{ x: 5 }}
-                            className="flex items-center gap-2 text-purple800 font-semibold hover:text-purple500 transition-colors group"
+                        <Link
+                            to="/shop"
+                            className="flex items-center gap-2 text-purple800 font-semibold hover:text-purple500 group"
                         >
                             <span className="hidden sm:inline">View All</span>
                             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                        </motion.a>
+                        </Link>
                     </motion.div>
 
                     {/* Product Grid */}
@@ -484,19 +457,15 @@ export default function Homepage() {
                                     </p>
                                 </div>
 
-                                {/* Add to Cart Button */}
                                 <motion.button
-                                    disabled
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="w-full mt-4 py-3 border-2 border-purple800 text-purple800 font-semibold text-sm uppercase tracking-wide hover:bg-purple800 hover:text-purple50 transition-all duration-300"
+                                    onClick={() => add(product)}
+                                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                    className="w-full mt-4 py-3 border-2 border-purple800 text-purple800 font-semibold text-sm uppercase hover:bg-purple800 hover:text-purple50"
                                 >
                                     Add to Cart
                                 </motion.button>
-
-                                {/* Price */}
                                 <p className="text-center mt-3 text-purple900 font-bold">
-                                    {product.price}
+                                    {typeof product.price === 'number' ? `₦${Number(product.price).toLocaleString()}` : product.price}
                                 </p>
                             </motion.div>
                         ))}
@@ -504,8 +473,8 @@ export default function Homepage() {
                 </div>
             </section>
             {/* Product Highlight Section */}
-            <section className="w-screen h-screen bg-purple800">
-                <div className="w-full h-full mx-auto">
+            <section className="w-full bg-purple800">
+                <div className="w-full mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                         {/* Image Side - Left */}
                         <motion.div
@@ -513,7 +482,7 @@ export default function Homepage() {
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
-                            className="relative h-screen w-full overflow-hidden"
+                            className="relative h-80 sm:h-[420px] lg:h-auto lg:min-h-[600px] w-full overflow-hidden"
                         >
                             <motion.img
                                 src={infoBackground}
@@ -691,13 +660,13 @@ export default function Homepage() {
                 <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-purple900 to-transparent z-10" />
             </section>
             {/* Why Section */}
-            <section className="w-full min-h-screen">
+            <section className="w-full">
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 h-auto md:h-screen"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                 >
                     {reasons.map((reason, index) => (
                         <motion.div
