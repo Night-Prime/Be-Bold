@@ -25,6 +25,7 @@ export const cartApi = {
 export const ordersApi = {
   create: (d) => api.post('/orders', d).then(r => r.data),
   my: () => api.get('/orders/my').then(r => r.data),
+  whatsapp: (d) => api.post('/orders/whatsapp', d).then(r => r.data),
 };
 export const authApi = {
   login: (d) => api.post('/auth/login', d).then(r => r.data),

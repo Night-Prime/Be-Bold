@@ -24,6 +24,8 @@ export default function Checkout() {
     e.preventDefault();
     const message = encodeURIComponent(buildWhatsAppMessage());
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+    const payload = { name: form.name, phone: form.phone, address: form.address, items: items.map(it=>({ id: it.id, product_id: it.id, name: it.name, price: it.price, qty: it.qty||it.quantity||1 })) };
+    ordersApi.whatsapp(payload).catch(()=>{});
     window.open(url,'_blank');
     clear();
     setMsg('Opening WhatsApp… Cart cleared');
