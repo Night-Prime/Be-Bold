@@ -26,7 +26,7 @@ export default function Navbar() {
                 </Link>
                 <div className="hidden md:flex items-center font-bold space-x-8">
                     {navItems.map((item, i) => (
-                        <Link key={i} to={item.href} className="text-white hover:text-purple100 relative group">{item.name}</Link>
+                        <Link key={i} to={item.href} className="!text-white hover:!text-purple100 relative group" style={{color:'#fff'}}>{item.name}</Link>
                     ))}
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -44,10 +44,10 @@ export default function Navbar() {
             </div>
             <AnimatePresence>
                 {isMenuOpen && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="md:hidden bg-white/95 mt-4">
-                        <div className="px-6 py-4 space-y-4">
-                            {navItems.map((it, i) => <Link key={i} to={it.href} onClick={() => setIsMenuOpen(false)} className="block text-purple800 font-semibold">{it.name}</Link>)}
-                            {!user ? <Link to="/login" className="block text-purple800">Login / Register</Link> : <button onClick={logout} className="block text-purple800">Logout</button>}
+                    <motion.div initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -10 }} transition={{ duration: 0.2 }} className="md:hidden absolute top-full left-0 w-full bg-purple800 shadow-xl border-t border-white/20 overflow-hidden">
+                        <div className="px-6 py-5 space-y-1">
+                            {navItems.map((it, i) => <Link key={i} to={it.href} onClick={() => setIsMenuOpen(false)} className="block py-3 px-3 !text-white font-bold text-base hover:bg-white/10 rounded-lg transition" style={{color:'#fff'}}>{it.name}</Link>)}
+                            {!user ? <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block py-3 px-3 !text-white font-semibold hover:bg-white/10 rounded-lg transition" style={{color:'#fff'}}>Login / Register</Link> : <button onClick={() => { logout(); setIsMenuOpen(false); }} className="block w-full text-left py-3 px-3 !text-white font-semibold hover:bg-white/10 rounded-lg transition" style={{color:'#fff'}}>Logout</button>}
                         </div>
                     </motion.div>
                 )}
