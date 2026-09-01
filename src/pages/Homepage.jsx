@@ -226,11 +226,11 @@ export default function Homepage() {
     };
 
     return (
-        <div>
+        <div className="overflow-x-hidden max-w-[100vw] w-full">
 
             {/* Hero Section */}
             <section
-                className="relative h-screen flex flex-col items-center justify-center overflow-hidden"
+                className="relative h-screen flex flex-col items-center justify-center overflow-hidden max-w-[100vw]"
             >
                 {/* Animated Background Images */}
                 <AnimatePresence mode="wait">
@@ -307,7 +307,7 @@ export default function Homepage() {
                         {/* Main Headline */}
                         <motion.h1
                             variants={headlineVariants}
-                            className="text-5xl md:text-7xl lg:text-8xl font-bold text-purple100 mb-6 leading-tight"
+                            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-purple100 mb-6 leading-tight break-words max-w-full px-2"
                         >
                             YOU DON'T NEED
                             <br />
@@ -628,7 +628,7 @@ export default function Homepage() {
                 </div>
             </section>
             {/* Banner */}
-            <section className="w-full h-48 bg-purple900 overflow-hidden flex items-center relative">
+            <section className="w-full h-48 bg-purple900 overflow-hidden flex items-center relative max-w-[100vw]">
                 {/* First Marquee - Left to Right */}
                 <motion.div
                     animate={{
@@ -639,16 +639,16 @@ export default function Homepage() {
                         repeat: Infinity,
                         ease: "linear"
                     }}
-                    className="flex items-center gap-8 whitespace-nowrap absolute"
+                    className="flex items-center gap-8 whitespace-nowrap absolute max-w-none"
                 >
                     {[...Array(3)].map((_, index) => (
-                        <div key={index} className="flex items-center gap-8">
+                        <div key={index} className="flex items-center gap-8 flex-shrink-0">
                             {messages.map((message, msgIndex) => (
                                 <span
                                     key={`${index}-${msgIndex}`}
                                     className={`${message === "✦"
-                                        ? "text-purple200 text-4xl"
-                                        : "text-purple100 text-5xl md:text-6xl lg:text-7xl font-bold uppercase tracking-wider"
+                                        ? "text-purple200 text-3xl sm:text-4xl flex-shrink-0"
+                                        : "text-purple100 text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase tracking-wider flex-shrink-0"
                                         }`}
                                 >
                                     {message}
@@ -744,11 +744,11 @@ export default function Homepage() {
                     ))}
                 </motion.div>
             </section>
+            <footer className="bg-purple900 text-purple100 relative overflow-hidden max-w-[100vw]">
 
-            <footer className="bg-purple900 text-purple100 relative overflow-hidden">
                 {/* Animated Background Elements */}
                 <motion.div
-                    className="absolute top-20 left-10 opacity-10"
+                    className="absolute top-20 left-10 opacity-10 max-w-full"
                     animate={{
                         y: [0, -30, 0],
                         rotate: [0, 10, 0]
@@ -778,7 +778,7 @@ export default function Homepage() {
                     <Heart className="w-40 h-40 text-purple200" />
                 </motion.div>
 
-                <div className="relative z-10 max-w-8xl mx-auto px-6">
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 overflow-hidden">
                     {/* Newsletter Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}

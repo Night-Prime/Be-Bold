@@ -20,7 +20,7 @@ export default function Navbar() {
     ];
     return (
         <motion.nav initial={{ y: -100 }} animate={{ y: 0 }} transition={{ duration: 0.6 }} className={`fixed w-full z-50 rounded-b-sm shadow-lg border-b-2 border-purple800 bg-purple800 ${scrolled ? 'shadow-md py-3 sm:py-4' : 'py-4 sm:py-6'}`}>
-            <div className="max-w-8xl mx-auto px-4 sm:px-6 flex items-center justify-between text-purple100 gap-2">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between text-purple100 gap-2 w-full overflow-hidden">
                 <Link to="/" className="text-xl sm:text-2xl font-bold tracking-wider flex gap-1.5 sm:gap-2 items-center flex-shrink-0 md:absolute md:left-1/2 md:-translate-x-1/2">
                     <span>BE</span><Star className="w-4 h-4 fill-current" /><span>BOLD</span>
                 </Link>
