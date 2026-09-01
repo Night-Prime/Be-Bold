@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
     setUser(r.user); setToken(r.token); return r;
   };
   const logout = () => { localStorage.removeItem('token'); localStorage.removeItem('user'); setUser(null); setToken(null); };
-  useEffect(() => { if (token && !user) authApi.me().then(setUser).catch(logout); }, []);
+  useEffect(() => { if (token && !user) authApi.me().then(setUser).catch(logout); }, [token, user]);
   return <Ctx.Provider value={{ user, token, login, register, logout, isAdmin: user?.role === 'admin' }}>{children}</Ctx.Provider>;
 }
 export const useAuth = () => useContext(Ctx);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { productsApi, categoriesApi } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
@@ -8,14 +8,14 @@ export default function Shop() {
   const [cat, setCat] = useState('');
   const [q, setQ] = useState('');
   const { add } = useCart();
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const p = await productsApi.list(cat ? { category_id: cat } : {});
       setProducts(q ? p.filter(x => x.name.toLowerCase().includes(q.toLowerCase())) : p);
     } catch { setProducts([]); }
-  };
+  }, [cat, q]);
   useEffect(() => { categoriesApi.list().then(setCats).catch(()=>{}); }, []);
-  useEffect(() => { load(); }, [cat, q]);
+  useEffect(() => { load(); }, [load]);
   return (
     <div className="pt-20 sm:pt-24 min-h-screen bg-purple50 px-4 sm:px-6 max-w-7xl mx-auto">
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple900 mb-4 sm:mb-6">SHOP COLLECTION</h1>

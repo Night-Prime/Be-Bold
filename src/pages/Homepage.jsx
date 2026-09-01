@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { productsApi } from "../api/client";
@@ -38,21 +38,23 @@ export default function Homepage() {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentBgIndex((prevIndex) => (prevIndex + 1) % backgrounds.length);
-        }, 5000); // Change image every 5 seconds
+        }, 5000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [backgrounds.length]);
 
-    const fallback = [
+    const fallback = useMemo(() => [
         { id: '00000000-0000-0000-0000-000000000001', name: "ESTHER'S COURAGE", description: "Velvet Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product1, scripture: "For such a time as this - Esther 4:14" },
         { id: '00000000-0000-0000-0000-000000000002', name: "RUTH'S LOYALTY", description: "Satin Lip Liner", size: "0.04 oz / 1.2g", price: 5000, image: product2, scripture: "Where you go I will go - Ruth 1:16" },
         { id: '00000000-0000-0000-0000-000000000003', name: "DEBORAH'S STRENGTH", description: "Matte Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product3, scripture: "She leads with courage - Judges 4:4" },
         { id: '00000000-0000-0000-0000-000000000004', name: "MARY'S GRACE", description: "Shimmer Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product4, scripture: "Blessed among women - Luke 1:42" }
-    ];
-    const imageMap = { '/product-1.jpeg': product1, '/product-5.jpeg': product2, '/product-3.jpeg': product3, '/product-4.jpeg': product4 };
-    const resolveImage = (img) => imageMap[img] || img;
+    ], []);
     const [products, setProducts] = useState(fallback);
-    useEffect(() => { productsApi.list({ featured: true }).then(d => { const src = d.length ? d : fallback; setProducts(src.map(p => ({ ...p, image: resolveImage(p.image), scripture: p.description?.slice(0, 60) || p.scripture }))); }).catch(() => {}); }, []);
+    useEffect(() => {
+        const imageMap = { '/product-1.jpeg': product1, '/product-5.jpeg': product2, '/product-3.jpeg': product3, '/product-4.jpeg': product4 };
+        const resolveImage = (img) => imageMap[img] || img;
+        productsApi.list({ featured: true }).then(d => { const src = d.length ? d : fallback; setProducts(src.map(p => ({ ...p, image: resolveImage(p.image), scripture: p.description?.slice(0, 60) || p.scripture }))); }).catch(() => {});
+    }, [fallback]);
 
     const reasons = [
         {
@@ -611,14 +613,15 @@ export default function Homepage() {
                                 viewport={{ once: true }}
                                 transition={{ delay: 1.1 }}
                             >
-                                <motion.button
-                                    disabled
-                                    whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(211, 145, 128, 0.4)" }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="px-8 py-4 bg-purple200 text-white font-bold rounded-full hover:bg-purple300 transition-all duration-300 shadow-lg uppercase tracking-wide"
-                                >
-                                    Shop Esther's Courage
-                                </motion.button>
+                                <Link to="/shop">
+                                    <motion.div
+                                        whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(211, 145, 128, 0.4)" }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-8 py-4 bg-purple200 text-white font-bold rounded-full hover:bg-purple300 transition-all duration-300 shadow-lg uppercase tracking-wide inline-block text-center"
+                                    >
+                                        Shop Esther's Courage
+                                    </motion.div>
+                                </Link>
                             </motion.div>
                         </motion.div>
                     </div>
@@ -660,19 +663,19 @@ export default function Homepage() {
                 <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-purple900 to-transparent z-10" />
             </section>
             {/* Why Section */}
-            <section className="w-full">
+            <section className="w-full min-h-[600px]">
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 min-h-[650px] lg:min-h-[750px]"
                 >
                     {reasons.map((reason, index) => (
                         <motion.div
                             key={reason.id}
                             variants={cardVariants}
-                            className="relative group overflow-hidden h-[500px] md:h-full"
+                            className="relative group overflow-hidden h-[650px] lg:h-[750px]"
                         >
                             {/* Background Image */}
                             <motion.div
@@ -699,9 +702,9 @@ export default function Homepage() {
                                     whileInView={{ opacity: 1, rotate: -90, x: 0 }}
                                     transition={{ delay: index * 0.1 + 0.3, duration: 0.6 }}
                                 >
-                                    <span className="text-purple100 text-sm md:text-base font-bold tracking-[0.3em] uppercase whitespace-nowrap origin-left">
+                                    {/* <span className="text-purple100 text-sm md:text-base font-bold tracking-[0.3em] uppercase whitespace-nowrap origin-left">
                                         {reason.tag}
-                                    </span>
+                                    </span> */}
                                 </motion.div>
 
                                 {/* Bottom: Main Content */}
@@ -729,14 +732,12 @@ export default function Homepage() {
                                     </motion.p>
 
                                     {/* CTA Button */}
-                                    <motion.button
-                                        disabled
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="mt-4 px-6 py-3 bg-transparent border-2 border-purple100 text-purple100 font-semibold text-sm uppercase tracking-wide rounded-full hover:bg-purple100 hover:text-purple900 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                                    <Link
+                                        to="/shop"
+                                        className="mt-4 px-6 py-3 bg-transparent border-2 border-purple100 text-purple100 font-semibold text-sm uppercase tracking-wide rounded-full hover:bg-purple100 hover:text-purple900 transition-all duration-300 opacity-0 group-hover:opacity-100 inline-block text-center"
                                     >
                                         shop {reason.tag}
-                                    </motion.button>
+                                    </Link>
                                 </motion.div>
                             </div>
                         </motion.div>
