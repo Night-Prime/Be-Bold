@@ -1,0 +1,12 @@
+const r=require('express').Router();
+const BaseModel=require('../models/BaseModel');
+const BaseController=require('../controllers/BaseController');
+const { auth, adminOnly }=require('../middleware/auth');
+const model=new BaseModel('categories');
+const ctrl=new BaseController(model,'categories');
+r.get('/', ctrl.list);
+r.get('/:id', ctrl.get);
+r.post('/', auth, adminOnly, ctrl.create);
+r.put('/:id', auth, adminOnly, ctrl.update);
+r.delete('/:id', auth, adminOnly, ctrl.remove);
+module.exports=r;
