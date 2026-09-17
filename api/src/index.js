@@ -19,6 +19,13 @@ app.get('/api/search', async(req,res)=>{
     res.json(rows);
   }catch(e){ res.status(500).json({error:e.message});}
 });
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok"
+  });
+});
+
 app.use((err,req,res,next)=>{ console.error(err); res.status(500).json({error:err.message||'Server error'}); });
 const PORT=process.env.PORT||3005;
 app.listen(PORT, ()=>console.log(`BeBold API on :${PORT}`));
