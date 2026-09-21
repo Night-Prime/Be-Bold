@@ -62,12 +62,12 @@ export default function Login() {
           <div className="mt-6 space-y-4">
             <div>
               <label className="text-[11px] font-bold tracking-widest text-purple800/60">EMAIL</label>
-              <input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="admin@example.com" className="mt-1.5 w-full px-4 py-3.5 rounded-2xl border-2 border-purple100 bg-purple50/50 text-purple900 placeholder:text-purple800/30 focus:outline-none focus:border-purple400 focus:bg-white transition text-sm" />
+              <input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="Enter email address" autoComplete="off" className="mt-1.5 w-full px-4 py-3.5 rounded-2xl border-2 border-purple100 bg-purple50/50 text-purple900 placeholder:text-purple800/30 focus:outline-none focus:border-purple400 focus:bg-white transition text-sm" />
             </div>
             <div>
               <label className="text-[11px] font-bold tracking-widest text-purple800/60">PASSWORD</label>
               <div className="mt-1.5 relative">
-                <input type={show ? 'text' : 'password'} value={f.password} onChange={e => setF({ ...f, password: e.target.value })} placeholder="••••••••" className="w-full px-4 py-3.5 pr-12 rounded-2xl border-2 border-purple100 bg-purple50/50 text-purple900 focus:outline-none focus:border-purple400 focus:bg-white transition text-sm" />
+                <input type={show ? 'text' : 'password'} value={f.password} onChange={e => setF({ ...f, password: e.target.value })} placeholder="Enter password" autoComplete="new-password" className="w-full px-4 py-3.5 pr-12 rounded-2xl border-2 border-purple100 bg-purple50/50 text-purple900 focus:outline-none focus:border-purple400 focus:bg-white transition text-sm" />
                 <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-purple800/40 hover:text-purple800">{show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
               </div>
             </div>
