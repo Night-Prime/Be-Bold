@@ -9,6 +9,8 @@ export default function Products() {
   const [form, setForm] = useState({ name: '', price: '', description: '', image: '', category_id: '', stock: 100, featured: false });
   const [edit, setEdit] = useState(null); const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const load = () => productsApi.list().then(setList).catch(() => {});
   useEffect(() => { load(); categoriesApi.list().then(setCats).catch(() => {}); }, []);
   const handleFile = async (e) => {
@@ -28,7 +30,13 @@ export default function Products() {
     if (edit) await productsApi.update(edit, data); else await productsApi.create(data);
     setForm({ name: '', price: '', description: '', image: '', category_id: '', stock: 100, featured: false }); setEdit(null); setOpen(false); load();
   };
-  const del = async id => { if (!window.confirm('Delete product?')) return; await productsApi.remove(id); load(); };
+  const del = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    try { await productsApi.remove(confirmDelete.id); setConfirmDelete(null); load(); }
+    catch (e) { alert(e.response?.data?.error || 'Delete failed'); }
+    finally { setDeleting(false); }
+  };
   const filtered = list.filter(p => (!q || p.name.toLowerCase().includes(q.toLowerCase())) && (!catFilter || String(p.category_id) === String(catFilter)));
   const startCreate = () => { setEdit(null); setForm({ name: '', price: '', description: '', image: '', category_id: '', stock: 100, featured: false }); setOpen(true); };
   const startEdit = p => { setEdit(p.id); setForm({ name: p.name, price: p.price, description: p.description || '', image: p.image || '', category_id: p.category_id || '', stock: p.stock ?? 100, featured: !!p.featured }); setOpen(true); };
@@ -75,7 +83,7 @@ export default function Products() {
                 </div>
                 <div className="mt-4 flex gap-2">
                   <button onClick={() => startEdit(p)} className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full border-2 border-purple800 text-purple800 font-bold text-xs hover:bg-purple800 hover:text-white transition"><Pencil className="w-3.5 h-3.5" /> Edit</button>
-                  <button onClick={() => del(p.id)} className="px-4 py-2.5 rounded-full bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => setConfirmDelete(p)} className="px-4 py-2.5 rounded-full bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             </motion.div>
@@ -89,6 +97,30 @@ export default function Products() {
           <button onClick={startCreate} className="mt-4 px-6 py-3 rounded-full bg-purple800 text-white font-bold text-sm">Create Product</button>
         </div>
       )}
+
+      <AnimatePresence>
+        {confirmDelete && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !deleting && setConfirmDelete(null)} className="fixed inset-0 bg-purple900/60 backdrop-blur-sm z-50" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} transition={{ type: 'spring', damping: 24, stiffness: 300 }} className="fixed inset-0 z-50 grid place-items-center p-4">
+              <div className="w-full max-w-[420px] bg-white rounded-[24px] shadow-2xl border border-purple100 overflow-hidden">
+                <div className="p-6">
+                  <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 grid place-items-center text-red-600 mx-auto"><Trash2 className="w-6 h-6" /></div>
+                  <h3 className="mt-4 text-center text-lg font-bold text-purple900">Delete product?</h3>
+                  <p className="mt-2 text-center text-sm text-purple800/60 leading-relaxed">This will permanently delete <span className="font-bold text-purple900">"{confirmDelete.name}"</span>. This action cannot be undone.</p>
+                  {confirmDelete.image && <img src={confirmDelete.image} alt={confirmDelete.name} className="mt-4 w-full h-32 object-cover rounded-2xl border border-purple100" onError={e=>e.target.style.display='none'} />}
+                </div>
+                <div className="px-6 pb-6 flex gap-3">
+                  <button onClick={() => setConfirmDelete(null)} disabled={deleting} className="flex-1 py-3 rounded-full border-2 border-purple100 font-bold text-purple800 hover:bg-purple50 transition disabled:opacity-50 text-sm">Cancel</button>
+                  <button onClick={del} disabled={deleting} className="flex-1 py-3 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-60 text-sm inline-flex items-center justify-center gap-2">
+                    {deleting && <Loader2 className="w-4 h-4 animate-spin" />} {deleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {open && (
