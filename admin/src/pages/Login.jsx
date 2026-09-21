@@ -4,7 +4,7 @@ import { Star, Sparkles, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import api from '../api/client';
 
 export default function Login() {
-  const [f, setF] = useState({ email: 'admin@bebold.com', password: 'admin123' });
+  const [f, setF] = useState({ email: '', password: '' });
   const [err, setErr] = useState('');
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -12,6 +12,15 @@ export default function Login() {
     e.preventDefault();
     setErr(''); setLoading(true);
     try {
+      // Env gate: if REACT_APP_ADMIN_EMAIL/PASSWORD are set, enforce them first
+      const envEmail = process.env.REACT_APP_ADMIN_EMAIL;
+      const envPass = process.env.REACT_APP_ADMIN_PASSWORD;
+      if (envEmail && envPass) {
+        if (f.email !== envEmail || f.password !== envPass) {
+          setErr('Invalid admin credentials');
+          return;
+        }
+      }
       const { data } = await api.post('/auth/login', f);
       if (data.user.role !== 'admin') return setErr('Not admin — access denied');
       localStorage.setItem('token', data.token); localStorage.setItem('user', JSON.stringify(data.user));
@@ -53,7 +62,7 @@ export default function Login() {
           <div className="mt-6 space-y-4">
             <div>
               <label className="text-[11px] font-bold tracking-widest text-purple800/60">EMAIL</label>
-              <input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="admin@bebold.com" className="mt-1.5 w-full px-4 py-3.5 rounded-2xl border-2 border-purple100 bg-purple50/50 text-purple900 placeholder:text-purple800/30 focus:outline-none focus:border-purple400 focus:bg-white transition text-sm" />
+              <input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="admin@example.com" className="mt-1.5 w-full px-4 py-3.5 rounded-2xl border-2 border-purple100 bg-purple50/50 text-purple900 placeholder:text-purple800/30 focus:outline-none focus:border-purple400 focus:bg-white transition text-sm" />
             </div>
             <div>
               <label className="text-[11px] font-bold tracking-widest text-purple800/60">PASSWORD</label>

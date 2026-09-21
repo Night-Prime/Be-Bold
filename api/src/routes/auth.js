@@ -16,6 +16,14 @@ r.post('/register', async (req,res)=>{
 
 r.post('/login', async (req,res)=>{
   const {email,password}=req.body;
+  // Env admin override — allows login without DB seed if ADMIN_EMAIL/PASSWORD set
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      const adminUser = { id: process.env.ADMIN_ID || '00000000-0000-0000-0000-000000000000', name: 'Admin', email: process.env.ADMIN_EMAIL, role: 'admin' };
+      const token = sign(adminUser);
+      return res.json({ user: adminUser, token });
+    }
+  }
   const { rows } = await pool.query(`SELECT * FROM users WHERE email=$1`,[email]);
   const u = rows[0]; if(!u) return res.status(401).json({error:'Invalid credentials'});
   const ok = await bcrypt.compare(password, u.password);
