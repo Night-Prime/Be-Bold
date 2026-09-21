@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { productsApi, categoriesApi } from '../api/client';
-import { Package, Search, Plus, Pencil, Trash2, X, Sparkles, Star } from 'lucide-react';
+import { productsApi, categoriesApi, uploadApi } from '../api/client';
+import { Package, Search, Plus, Pencil, Trash2, X, Sparkles, Star, Upload, Loader2 } from 'lucide-react';
 
 export default function Products() {
   const [list, setList] = useState([]); const [cats, setCats] = useState([]);
   const [q, setQ] = useState(''); const [catFilter, setCatFilter] = useState('');
   const [form, setForm] = useState({ name: '', price: '', description: '', image: '', category_id: '', stock: 100, featured: false });
   const [edit, setEdit] = useState(null); const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const load = () => productsApi.list().then(setList).catch(() => {});
   useEffect(() => { load(); categoriesApi.list().then(setCats).catch(() => {}); }, []);
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadApi.image(file);
+      setForm(f => ({ ...f, image: res.url }));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Upload failed');
+    } finally { setUploading(false); }
+  };
   const submit = async e => {
     e.preventDefault();
     const data = { ...form, price: Number(form.price) };
@@ -93,7 +105,19 @@ export default function Products() {
                   <div><label className="text-[11px] font-bold tracking-widest text-purple800/60">PRICE (₦)</label><input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-purple100 focus:border-purple400 focus:outline-none text-sm" required /></div>
                   <div><label className="text-[11px] font-bold tracking-widest text-purple800/60">STOCK</label><input type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-purple100 focus:border-purple400 focus:outline-none text-sm" /></div>
                 </div>
-                <div><label className="text-[11px] font-bold tracking-widest text-purple800/60">IMAGE URL</label><input value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} placeholder="https://..." className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-purple100 focus:border-purple400 focus:outline-none text-sm" /></div>
+                <div>
+                  <label className="text-[11px] font-bold tracking-widest text-purple800/60">IMAGE</label>
+                  <div className="mt-1 flex gap-2">
+                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-dashed border-purple200 bg-purple50 hover:bg-purple100 cursor-pointer text-sm font-semibold text-purple800 transition">
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploading ? 'Uploading...' : 'Upload file'}
+                      <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+                    </label>
+                    {form.image && <img src={form.image} alt="preview" className="w-14 h-14 rounded-xl object-cover border border-purple100" onError={e=>e.target.style.display='none'} />}
+                  </div>
+                  <input value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} placeholder="https://... or upload above" className="mt-2 w-full px-4 py-3 rounded-2xl border-2 border-purple100 focus:border-purple400 focus:outline-none text-sm" />
+                  <p className="text-[11px] text-purple800/40 mt-1">Upload to cPanel (<code>/uploads/</code>) or paste a URL. File stored on server and shown on client.</p>
+                </div>
                 <div><label className="text-[11px] font-bold tracking-widest text-purple800/60">CATEGORY</label><select value={form.category_id} onChange={e => setForm({ ...form, category_id: e.target.value })} className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-purple100 bg-white focus:border-purple400 focus:outline-none text-sm"><option value="">No category</option>{cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
                 <div><label className="text-[11px] font-bold tracking-widest text-purple800/60">DESCRIPTION</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={4} className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-purple100 focus:border-purple400 focus:outline-none text-sm resize-none" /></div>
                 <label className="flex items-center gap-3 p-4 rounded-2xl bg-purple50 border border-purple100 cursor-pointer"><input type="checkbox" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} className="w-4 h-4 accent-purple800" /><span className="text-sm font-bold text-purple900">Featured on homepage</span><Star className={`ml-auto w-4 h-4 ${form.featured ? 'text-purple800 fill-current' : 'text-purple300'}`} /></label>

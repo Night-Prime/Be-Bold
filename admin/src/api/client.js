@@ -5,3 +5,10 @@ class R { constructor(p){this.p=p} list=()=>api.get(this.p).then(r=>r.data); get
 export default api;
 export const productsApi=new R('/products');
 export const categoriesApi=new R('/categories');
+export const uploadApi = {
+  image: (file) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r=>r.data);
+  }
+};

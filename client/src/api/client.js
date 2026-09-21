@@ -1,5 +1,15 @@
 import axios from 'axios';
-const api = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' });
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const api = axios.create({ baseURL: API_URL });
+export const resolveImage = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/uploads')) {
+    const origin = API_URL.replace(/\/api\/?$/, '');
+    return `${origin}${url}`;
+  }
+  return url;
+};
 api.interceptors.request.use(c => {
   const t = localStorage.getItem('token');
   if (t) c.headers.Authorization = `Bearer ${t}`;

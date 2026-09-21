@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { productsApi } from '../api/client';
+import { productsApi, resolveImage } from '../api/client';
 import { useCart } from '../context/CartContext';
 export default function ProductDetail() {
   const { id } = useParams();
@@ -13,7 +13,7 @@ export default function ProductDetail() {
     <div className="pt-20 sm:pt-24 min-h-screen bg-purple50 px-4 sm:px-6 max-w-6xl mx-auto">
       <Link to="/shop" className="text-sm text-purple800 underline">← Back to Shop</Link>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 mt-4">
-        <img src={p.image} alt={p.name} className="w-full h-80 sm:h-[420px] lg:h-[500px] object-cover rounded-xl" />
+        <img src={resolveImage(p.image)} alt={p.name} className="w-full h-80 sm:h-[420px] lg:h-[500px] object-cover rounded-xl" />
         <div className="py-2 sm:py-6">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple900">{p.name}</h1>
           <p className="text-purple800/70 mt-2 text-sm sm:text-base">{p.description}</p>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { productsApi, categoriesApi } from '../api/client';
+import { productsApi, categoriesApi, resolveImage } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 export default function Shop() {
@@ -29,7 +29,7 @@ export default function Shop() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 pb-20">
         {products.map(p => (
           <div key={p.id} className="bg-white rounded-xl overflow-hidden shadow flex flex-col">
-            <Link to={`/product/${p.id}`} className="block aspect-square overflow-hidden bg-purple50"><img src={p.image?.startsWith('/') ? p.image : p.image} alt={p.name} className="h-full w-full object-cover hover:scale-105 transition duration-300" onError={e => e.target.style.background='#F3E8FF'} /></Link>
+            <Link to={`/product/${p.id}`} className="block aspect-square overflow-hidden bg-purple50"><img src={resolveImage(p.image)} alt={p.name} className="h-full w-full object-cover hover:scale-105 transition duration-300" onError={e => e.target.style.background='#F3E8FF'} /></Link>
             <div className="p-3 sm:p-4 flex flex-col flex-1">
               <h3 className="font-bold text-purple900 text-xs sm:text-sm line-clamp-1">{p.name}</h3>
               <p className="text-purple800/70 text-xs line-clamp-2 mt-1 min-h-[32px]">{p.description}</p>
