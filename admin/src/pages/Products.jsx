@@ -83,7 +83,7 @@ export default function Products() {
                 </div>
                 <div className="mt-4 flex gap-2">
                   <button onClick={() => startEdit(p)} className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full border-2 border-purple800 text-purple800 font-bold text-xs hover:bg-purple800 hover:text-white transition"><Pencil className="w-3.5 h-3.5" /> Edit</button>
-                  <button onClick={() => setConfirmDelete(p)} className="px-4 py-2.5 rounded-full bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => setConfirmDelete(p)} style={{backgroundColor:'#FEF2F2', borderColor:'#FECACA', color:'#DC2626'}} className="px-4 py-2.5 rounded-full border hover:opacity-90 transition"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             </motion.div>
@@ -105,15 +105,15 @@ export default function Products() {
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} transition={{ type: 'spring', damping: 24, stiffness: 300 }} className="fixed inset-0 z-50 grid place-items-center p-4">
               <div className="w-full max-w-[420px] bg-white rounded-[24px] shadow-2xl border border-purple100 overflow-hidden">
                 <div className="p-6">
-                  <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 grid place-items-center text-red-600 mx-auto"><Trash2 className="w-6 h-6" /></div>
+                  <div className="w-12 h-12 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] grid place-items-center text-[#DC2626] mx-auto"><Trash2 className="w-6 h-6" /></div>
                   <h3 className="mt-4 text-center text-lg font-bold text-purple900">Delete product?</h3>
                   <p className="mt-2 text-center text-sm text-purple800/60 leading-relaxed">This will permanently delete <span className="font-bold text-purple900">"{confirmDelete.name}"</span>. This action cannot be undone.</p>
                   {confirmDelete.image && <img src={confirmDelete.image} alt={confirmDelete.name} className="mt-4 w-full h-32 object-cover rounded-2xl border border-purple100" onError={e=>e.target.style.display='none'} />}
                 </div>
-                <div className="px-6 pb-6 flex gap-3">
-                  <button onClick={() => setConfirmDelete(null)} disabled={deleting} className="flex-1 py-3.5 rounded-full border-2 border-purple100 font-bold text-purple800 hover:bg-purple50 transition disabled:opacity-50 text-sm">Cancel</button>
-                  <button onClick={del} disabled={deleting} className="flex-1 py-3.5 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-60 text-sm inline-flex items-center justify-center gap-2">
-                    {deleting && <Loader2 className="w-4 h-4 animate-spin" />} {deleting ? 'Deleting...' : 'Confirm Delete'}
+                <div className="px-6 pb-6 grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setConfirmDelete(null)} disabled={deleting} className="w-full py-3.5 rounded-full border-2 border-purple100 font-bold text-purple800 hover:bg-purple50 transition disabled:opacity-50 text-sm">Cancel</button>
+                  <button type="button" onClick={del} disabled={deleting} style={{backgroundColor:'#DC2626', color:'white'}} className="w-full py-3.5 rounded-full font-bold hover:opacity-90 transition disabled:opacity-60 text-sm inline-flex items-center justify-center gap-2">
+                    {deleting && <Loader2 className="w-4 h-4 animate-spin" />} {deleting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </div>
