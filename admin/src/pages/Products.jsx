@@ -111,9 +111,9 @@ export default function Products() {
                   {confirmDelete.image && <img src={confirmDelete.image} alt={confirmDelete.name} className="mt-4 w-full h-32 object-cover rounded-2xl border border-purple100" onError={e=>e.target.style.display='none'} />}
                 </div>
                 <div className="px-6 pb-6 flex gap-3">
-                  <button onClick={() => setConfirmDelete(null)} disabled={deleting} className="flex-1 py-3 rounded-full border-2 border-purple100 font-bold text-purple800 hover:bg-purple50 transition disabled:opacity-50 text-sm">Cancel</button>
-                  <button onClick={del} disabled={deleting} className="flex-1 py-3 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-60 text-sm inline-flex items-center justify-center gap-2">
-                    {deleting && <Loader2 className="w-4 h-4 animate-spin" />} {deleting ? 'Deleting...' : 'Delete'}
+                  <button onClick={() => setConfirmDelete(null)} disabled={deleting} className="flex-1 py-3.5 rounded-full border-2 border-purple100 font-bold text-purple800 hover:bg-purple50 transition disabled:opacity-50 text-sm">Cancel</button>
+                  <button onClick={del} disabled={deleting} className="flex-1 py-3.5 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-60 text-sm inline-flex items-center justify-center gap-2">
+                    {deleting && <Loader2 className="w-4 h-4 animate-spin" />} {deleting ? 'Deleting...' : 'Confirm Delete'}
                   </button>
                 </div>
               </div>
