@@ -1,18 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { productsApi } from "../api/client";
+import { productsApi, newsletterApi } from "../api/client";
+import { resolveProductImage } from "../api/images";
+import { ProductCardSkeleton } from "../components/shared/Loader";
 import { useCart } from "../context/CartContext";
 import { ChevronDown, Sparkles, ArrowRight, Instagram, Facebook, Twitter, Mail, Phone, MapPin, Star, Heart } from "lucide-react";
 import heroBackground from "../assets/images/background-4.jpeg";
 import heroBackground2 from "../assets/images/background-1.jpeg";
 import heroBackground3 from "../assets/images/background-5.jpeg";
 import heroBackground4 from "../assets/images/background-3.jpeg";
-import product1 from "../assets/images/product-1.jpeg";
-import product2 from "../assets/images/product-5.jpeg";
-import product3 from "../assets/images/product-3.jpeg";
-import product4 from "../assets/images/product-4.jpeg";
-import infoBackground from "../assets/images/info-1.jpeg";
 
 export default function Homepage() {
     const { scrollY } = useScroll();
@@ -22,16 +19,21 @@ export default function Homepage() {
     const backgrounds = [heroBackground, heroBackground2, heroBackground3, heroBackground4];
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
     const [email, setEmail] = useState("");
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [subscribeState, setSubscribeState] = useState({ status: 'idle', msg: '' });
     const { add } = useCart();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSubmitted(true);
-        setTimeout(() => {
-            setIsSubmitted(false);
+        if (subscribeState.status === 'sending') return;
+        setSubscribeState({ status: 'sending', msg: '' });
+        try {
+            await newsletterApi.subscribe({ email, source: 'landing' });
+            setSubscribeState({ status: 'success', msg: 'Welcome to the Bold Movement! ✓' });
             setEmail("");
-        }, 3000);
+        } catch (err) {
+            setSubscribeState({ status: 'error', msg: err.response?.data?.error || 'Could not subscribe. Please try again.' });
+        }
+        setTimeout(() => setSubscribeState({ status: 'idle', msg: '' }), 5000);
     };
 
     // Auto-rotate backgrounds every 5 seconds
@@ -43,18 +45,19 @@ export default function Homepage() {
         return () => clearInterval(interval);
     }, [backgrounds.length]);
 
-    const fallback = useMemo(() => [
-        { id: '00000000-0000-0000-0000-000000000001', name: "ESTHER'S COURAGE", description: "Velvet Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product1, scripture: "For such a time as this - Esther 4:14" },
-        { id: '00000000-0000-0000-0000-000000000002', name: "RUTH'S LOYALTY", description: "Satin Lip Liner", size: "0.04 oz / 1.2g", price: 5000, image: product2, scripture: "Where you go I will go - Ruth 1:16" },
-        { id: '00000000-0000-0000-0000-000000000003', name: "DEBORAH'S STRENGTH", description: "Matte Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product3, scripture: "She leads with courage - Judges 4:4" },
-        { id: '00000000-0000-0000-0000-000000000004', name: "MARY'S GRACE", description: "Shimmer Lip Gloss", size: "4.2 oz / 120ml", price: 5000, image: product4, scripture: "Blessed among women - Luke 1:42" }
-    ], []);
-    const [products, setProducts] = useState(fallback);
+    // Featured products come from the DB only — no template data.
+    // Sections below render only when products are available.
+    const [products, setProducts] = useState([]);
+    const [productsLoading, setProductsLoading] = useState(true);
     useEffect(() => {
-        const imageMap = { '/product-1.jpeg': product1, '/product-5.jpeg': product2, '/product-3.jpeg': product3, '/product-4.jpeg': product4 };
-        const resolveImage = (img) => imageMap[img] || img;
-        productsApi.list({ featured: true }).then(d => { const src = d.length ? d : fallback; setProducts(src.map(p => ({ ...p, image: resolveImage(p.image), scripture: p.description?.slice(0, 60) || p.scripture }))); }).catch(() => {});
-    }, [fallback]);
+        let cancelled = false;
+        productsApi.list({ featured: true })
+            .then(d => { if (!cancelled) setProducts(Array.isArray(d) ? d : []); })
+            .catch(() => { if (!cancelled) setProducts([]); })
+            .finally(() => { if (!cancelled) setProductsLoading(false); });
+        return () => { cancelled = true; };
+    }, []);
+    const highlight = products[0];
 
     const reasons = [
         {
@@ -393,7 +396,8 @@ export default function Homepage() {
                 </motion.div>
             </section>
 
-            {/* Shop Section */}
+            {/* Shop Section — rendered only when featured products exist */}
+            {(productsLoading || products.length > 0) && (
             <section id="shop" className="py-12 sm:py-20 bg-purple50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Section Header */}
@@ -418,7 +422,10 @@ export default function Homepage() {
 
                     {/* Product Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {products.map((product, index) => (
+                        {productsLoading ? (
+                            Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+                        ) : (
+                        products.map((product, index) => (
                             <motion.div
                                 key={product.id}
                                 variants={productCardVariants}
@@ -429,22 +436,24 @@ export default function Homepage() {
                                 className="group"
                             >
                                 {/* Product Image Container */}
-                                <div className="relative bg-purple100/30 rounded-lg overflow-hidden mb-4 aspect-square">
+                                <Link to={`/product/${product.id}`} className="relative bg-purple100/30 rounded-lg overflow-hidden mb-4 aspect-square block">
                                     <motion.img
-                                        src={product.image}
+                                        src={resolveProductImage(product.image)}
                                         alt={product.name}
                                         className="w-full h-full object-cover"
                                         whileHover={{ scale: 1.05 }}
                                         transition={{ duration: 0.4 }}
                                     />
 
-                                    {/* Hover Overlay with Scripture */}
+                                    {/* Hover Overlay with description */}
+                                    {product.description && (
                                     <div className="absolute inset-0 bg-purple900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6">
                                         <p className="text-purple100 text-center text-sm italic font-serif">
-                                            "{product.scripture}"
+                                            "{product.description.length > 120 ? product.description.slice(0, 120) + '…' : product.description}"
                                         </p>
                                     </div>
-                                </div>
+                                    )}
+                                </Link>
 
                                 {/* Product Info */}
                                 <div className="space-y-2">
@@ -453,9 +462,6 @@ export default function Homepage() {
                                     </h3>
                                     <p className="text-purple800/70 text-sm">
                                         {product.description}
-                                    </p>
-                                    <p className="text-purple800/50 text-xs">
-                                        {product.size}
                                     </p>
                                 </div>
 
@@ -467,14 +473,17 @@ export default function Homepage() {
                                     Add to Cart
                                 </motion.button>
                                 <p className="text-center mt-3 text-purple900 font-bold">
-                                    {typeof product.price === 'number' ? `₦${Number(product.price).toLocaleString()}` : product.price}
+                                    ₦{Number(product.price).toLocaleString()}
                                 </p>
                             </motion.div>
-                        ))}
+                        ))
+                        )}
                     </div>
                 </div>
             </section>
-            {/* Product Highlight Section */}
+            )}
+            {/* Product Highlight Section — driven by the first featured product */}
+            {highlight && (
             <section className="w-full bg-purple800">
                 <div className="w-full mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -487,8 +496,8 @@ export default function Homepage() {
                             className="relative h-80 sm:h-[420px] lg:h-auto lg:min-h-[600px] w-full overflow-hidden"
                         >
                             <motion.img
-                                src={infoBackground}
-                                alt="Esther's Courage Lip Gloss"
+                                src={resolveProductImage(highlight.image)}
+                                alt={highlight.name}
                                 className="w-full h-full object-cover"
                                 whileHover={{ scale: 1.05 }}
                                 transition={{ duration: 0.6 }}
@@ -539,7 +548,8 @@ export default function Homepage() {
                                 transition={{ delay: 0.6 }}
                                 className="text-xl md:text-2xl font-semibold text-purple200 mb-6 tracking-wide"
                             >
-                                Esther's Courage Velvet Lip Gloss
+                                {highlight.name}
+                                <span className="block text-lg text-purple100/80 mt-1">₦{Number(highlight.price).toLocaleString()}</span>
                             </motion.h3>
 
                             {/* Description */}
@@ -550,17 +560,18 @@ export default function Homepage() {
                                 transition={{ delay: 0.7 }}
                                 className="text-purple100/90 text-base md:text-lg leading-relaxed mb-6"
                             >
-                                Transform your look with our signature Esther's Courage lip gloss, infused with nourishing ingredients and bold pigmentation. This luxurious formula glides on smoothly, delivering intense color and a velvety finish that lasts throughout the day.
+                                {highlight.description}
                             </motion.p>
 
+                            {/* Stock */}
                             <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.8 }}
-                                className="text-purple100/90 text-base md:text-lg leading-relaxed mb-8"
+                                className="text-purple100/70 text-sm md:text-base leading-relaxed mb-8"
                             >
-                                Its lightweight texture absorbs seamlessly, leaving no residue behind. Whether you're seeking to embrace your natural radiance or enhance your boldness, our lip gloss is the perfect daily companion.
+                                {(highlight.stock ?? 100) > 0 ? `${highlight.stock ?? 100} in stock — order yours today.` : 'Currently out of stock.'}
                             </motion.p>
 
                             {/* Scripture */}
@@ -613,13 +624,13 @@ export default function Homepage() {
                                 viewport={{ once: true }}
                                 transition={{ delay: 1.1 }}
                             >
-                                <Link to="/shop">
+                                <Link to={`/product/${highlight.id}`}>
                                     <motion.div
                                         whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(211, 145, 128, 0.4)" }}
                                         whileTap={{ scale: 0.95 }}
                                         className="px-8 py-4 bg-purple200 text-white font-bold rounded-full hover:bg-purple300 transition-all duration-300 shadow-lg uppercase tracking-wide inline-block text-center"
                                     >
-                                        Shop Esther's Courage
+                                        Shop {highlight.name}
                                     </motion.div>
                                 </Link>
                             </motion.div>
@@ -627,6 +638,7 @@ export default function Homepage() {
                     </div>
                 </div>
             </section>
+            )}
             {/* Banner */}
             <section className="w-full h-48 bg-purple900 overflow-hidden flex items-center relative max-w-[100vw]">
                 {/* First Marquee - Left to Right */}
@@ -816,13 +828,17 @@ export default function Homepage() {
                                 />
                                 <motion.button
                                     type="submit"
+                                    disabled={subscribeState.status === 'sending'}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    className="px-8 py-4 bg-purple200 text-white font-bold rounded-full hover:bg-purple300 transition-all duration-300 shadow-lg"
+                                    className="px-8 py-4 bg-purple200 text-white font-bold rounded-full hover:bg-purple300 transition-all duration-300 shadow-lg disabled:opacity-60"
                                 >
-                                    {isSubmitted ? "Subscribed! ✓" : "Subscribe"}
+                                    {subscribeState.status === 'sending' ? "Subscribing…" : subscribeState.status === 'success' ? "Subscribed! ✓" : "Subscribe"}
                                 </motion.button>
                             </form>
+                            {subscribeState.msg && (
+                                <p className={`mt-4 text-sm ${subscribeState.status === 'error' ? 'text-red-300' : 'text-purple200'}`}>{subscribeState.msg}</p>
+                            )}
                         </div>
                     </motion.div>
 

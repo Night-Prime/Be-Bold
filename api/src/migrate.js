@@ -43,7 +43,15 @@ async function migrate(){
     total DECIMAL(10,2),
     address TEXT,
     phone TEXT,
+    customer_name TEXT,
+    email TEXT,
+    source TEXT DEFAULT 'direct',
     status TEXT DEFAULT 'pending',
+    tx_ref TEXT UNIQUE,
+    flw_ref TEXT,
+    payment_method TEXT,
+    payment_status TEXT DEFAULT 'pending',
+    paid_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
   CREATE TABLE IF NOT EXISTS order_items (
@@ -51,7 +59,15 @@ async function migrate(){
     order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id),
     quantity INT,
-    price DECIMAL(10,2)
+    price DECIMAL(10,2),
+    product_name TEXT
+  );
+  CREATE TABLE IF NOT EXISTS subscribers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT UNIQUE NOT NULL,
+    name TEXT,
+    source TEXT DEFAULT 'landing',
+    created_at TIMESTAMPTZ DEFAULT NOW()
   );
   `);
   console.log('Migrated'); process.exit(0);

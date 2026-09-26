@@ -1,13 +1,22 @@
-import { useState } from 'react';
-import { ordersApi } from '../api/client';
+import { useEffect, useState } from 'react';
+import { ordersApi, paymentsApi } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-const ENABLE_PAYMENT = process.env.REACT_APP_ENABLE_PAYMENT === 'true';
+// Build-time default; the server value (GET /api/payments/config) is the
+// source of truth at runtime so toggling ENABLE_PAYMENT needs no rebuild.
+const ENABLE_PAYMENT_DEFAULT = process.env.REACT_APP_ENABLE_PAYMENT === 'true';
 const WHATSAPP_NUMBER = (process.env.REACT_APP_WHATSAPP_NUMBER || '2348123456789').replace(/\D/g,'');
 export default function Checkout() {
   const { items, clear } = useCart();
   const total = items.reduce((s, i) => s + Number(i.price) * Number(i.qty || i.quantity || 1), 0);
-  const [form, setForm] = useState({ name:'', address:'', phone:'' });
+  const [form, setForm] = useState({ name:'', email:'', address:'', phone:'' });
+  const [method, setMethod] = useState('hosted'); // hosted (card + bank transfer) | bank_transfer | card
+  const [enablePayment, setEnablePayment] = useState(ENABLE_PAYMENT_DEFAULT);
+  useEffect(() => {
+    paymentsApi.config()
+      .then((c) => setEnablePayment(c.enablePayment === true || ENABLE_PAYMENT_DEFAULT))
+      .catch(() => {});
+  }, []);
   const [msg, setMsg] = useState('');
   const [placing, setPlacing] = useState(false);
   if (!items.length) return <div className="pt-28 text-center px-6">Cart empty. <Link to="/shop" className="underline text-purple800">Shop now</Link></div>;
@@ -33,8 +42,26 @@ export default function Checkout() {
   const handlePayment = async (e) => {
     e.preventDefault();
     setPlacing(true); setMsg('');
-    try { const o = await ordersApi.create({ address: form.address, phone: form.phone }); setMsg('Order '+o.id+' placed!'); clear(); setTimeout(()=>window.location.href='/orders',1500); }
-    catch(err){ setMsg(err.response?.data?.error||'Failed to place order'); }
+    try {
+      const payload = {
+        email: form.email, name: form.name, phone: form.phone, address: form.address,
+        payment_method: method,
+        items: items.map(it=>({ id: it.id, product_id: it.id, name: it.name, price: it.price, qty: it.qty||it.quantity||1 })),
+      };
+      if (method === 'bank_transfer') {
+        const r = await paymentsApi.bankTransfer({ ...payload, phone_number: form.phone });
+        if (r.transfer) {
+          setMsg(`Pay ₦${Number(r.order.total).toLocaleString()} to ${r.transfer.bank} — ${r.transfer.account_number} (ref: ${r.transfer.reference})`);
+        } else {
+          setMsg('Transfer initiated. Check your email for account details. Ref: ' + r.tx_ref);
+        }
+        return;
+      }
+      const r = await paymentsApi.initialize(payload);
+      // Redirect to Flutterwave hosted checkout (supports cards + bank transfer)
+      window.location.href = r.payment_link;
+    }
+    catch(err){ setMsg(err.response?.data?.error||'Failed to start payment'); }
     finally{ setPlacing(false); }
   };
   return (
@@ -52,12 +79,24 @@ export default function Checkout() {
         </div>
         <div className="flex justify-between mt-4 pt-4 border-t font-bold text-lg text-purple900"><span>Total</span><span>₦{total.toLocaleString()}</span></div>
       </div>
-      {ENABLE_PAYMENT ? (
+      {enablePayment ? (
         <form onSubmit={handlePayment} className="space-y-4 bg-white p-4 sm:p-6 rounded-xl">
-          <p className="text-sm text-green-700 bg-green-50 p-3 rounded">Payment gateway enabled</p>
+          <p className="text-sm text-green-700 bg-green-50 p-3 rounded">Secure payment via Flutterwave</p>
+          <div className="flex gap-2 text-xs sm:text-sm">
+            <label className="flex-1 border rounded-lg p-3 cursor-pointer has-[:checked]:border-purple800 has-[:checked]:bg-purple50">
+              <input type="radio" name="pm" checked={method==='hosted'} onChange={()=>setMethod('hosted')} className="mr-2" />
+              Card & Bank Transfer
+            </label>
+            <label className="flex-1 border rounded-lg p-3 cursor-pointer has-[:checked]:border-purple800 has-[:checked]:bg-purple50">
+              <input type="radio" name="pm" checked={method==='bank_transfer'} onChange={()=>setMethod('bank_transfer')} className="mr-2" />
+              Bank Transfer only
+            </label>
+          </div>
+          <input placeholder="Full Name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-4 py-3 border rounded-lg text-sm sm:text-base" required />
+          <input placeholder="Email" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="w-full px-4 py-3 border rounded-lg text-sm sm:text-base" required />
           <input placeholder="Delivery Address" value={form.address} onChange={e=>setForm({...form,address:e.target.value})} className="w-full px-4 py-3 border rounded-lg text-sm sm:text-base" required />
           <input placeholder="Phone" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} className="w-full px-4 py-3 border rounded-lg text-sm sm:text-base" required />
-          <button disabled={placing} className="w-full py-3 bg-purple800 text-white rounded-full font-bold text-sm sm:text-base disabled:opacity-60">{placing?'Placing…':'Pay & Place Order'}</button>
+          <button disabled={placing} className="w-full py-3 bg-purple800 text-white rounded-full font-bold text-sm sm:text-base disabled:opacity-60">{placing?'Processing…': method==='bank_transfer' ? 'Get Transfer Details' : 'Pay ₦'+total.toLocaleString()}</button>
           {msg && <p className="text-center text-sm text-purple800">{msg}</p>}
         </form>
       ) : (

@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Layers, ShoppingBag, TrendingUp, Sparkles, ArrowUpRight, Star } from 'lucide-react';
+import { Package, Layers, ShoppingBag, TrendingUp, Sparkles, ArrowUpRight, Star, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import api, { productsApi, categoriesApi } from '../api/client';
+import api, { productsApi, categoriesApi, subscribersApi } from '../api/client';
 
 const container = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ products: 0, categories: 0, orders: 0 });
+  const [stats, setStats] = useState({ products: 0, categories: 0, orders: 0, subscribers: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [products, setProducts] = useState([]);
   useEffect(() => {
-    Promise.all([productsApi.list().catch(() => []), categoriesApi.list().catch(() => []), api.get('/orders').then(r => r.data).catch(() => [])]).then(([p, c, o]) => {
-      setStats({ products: p.length, categories: c.length, orders: o.length });
+    Promise.all([productsApi.list().catch(() => []), categoriesApi.list().catch(() => []), api.get('/orders').then(r => r.data).catch(() => []), subscribersApi.list().catch(() => [])]).then(([p, c, o, s]) => {
+      setStats({ products: p.length, categories: c.length, orders: o.length, subscribers: s.length });
       setProducts(p.slice(0, 4));
       setRecentOrders(o.slice(0, 5));
     });
@@ -22,6 +22,7 @@ export default function Dashboard() {
     { label: 'Products', value: stats.products, icon: Package, to: '/products', gradient: 'from-purple800 to-purple500', accent: 'bg-purple200', sub: 'Live catalog' },
     { label: 'Categories', value: stats.categories, icon: Layers, to: '/categories', gradient: 'from-purple900 to-purple800', accent: 'bg-purple300', sub: 'Organized' },
     { label: 'Orders', value: stats.orders, icon: ShoppingBag, to: '/orders', gradient: 'from-purple500 to-purple400', accent: 'bg-purple100', sub: 'Total received' },
+    { label: 'Subscribers', value: stats.subscribers, icon: Mail, to: '/subscribers', gradient: 'from-purple800 to-purple400', accent: 'bg-purple100', sub: 'Email list' },
   ];
   return (
     <div className="space-y-6">
@@ -43,7 +44,7 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      <motion.div variants={container} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <motion.div variants={container} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(c => (
           <motion.div key={c.label} variants={item} whileHover={{ y: -4 }} className="relative overflow-hidden bg-white rounded-[22px] p-6 border border-purple100 shadow-sm">
             <div className={`absolute top-0 right-0 w-28 h-28 bg-gradient-to-br ${c.gradient} opacity-[0.08] rounded-bl-[100px]`} />

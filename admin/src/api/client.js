@@ -5,6 +5,20 @@ class R { constructor(p){this.p=p} list=()=>api.get(this.p).then(r=>r.data); get
 export default api;
 export const productsApi=new R('/products');
 export const categoriesApi=new R('/categories');
+export const ordersApi = {
+  list: () => api.get('/orders').then(r => r.data),
+  updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }).then(r => r.data),
+};
+export const subscribersApi = {
+  list: (q) => api.get('/subscribers', { params: q ? { q } : {} }).then(r => r.data),
+  remove: (id) => api.delete(`/subscribers/${id}`).then(r => r.data),
+  exportCsv: () => api.get('/subscribers/export', { responseType: 'blob' }).then(r => {
+    const url = window.URL.createObjectURL(new Blob([r.data], { type: 'text/csv' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'bebold-subscribers.csv'; a.click();
+    window.URL.revokeObjectURL(url);
+  }),
+};
 export const uploadApi = {
   image: (file) => {
     const fd = new FormData();

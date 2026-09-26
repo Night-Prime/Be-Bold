@@ -37,6 +37,18 @@ export const ordersApi = {
   my: () => api.get('/orders/my').then(r => r.data),
   whatsapp: (d) => api.post('/orders/whatsapp', d).then(r => r.data),
 };
+export const paymentsApi = {
+  config: () => api.get('/payments/config').then(r => r.data),
+  initialize: (d) => api.post('/payments/initialize', d).then(r => r.data),
+  bankTransfer: (d) => api.post('/payments/bank-transfer', d).then(r => r.data),
+  chargeCard: (d) => api.post('/payments/card', d).then(r => r.data),
+  validateCard: (d) => api.post('/payments/card/validate', d).then(r => r.data),
+  verify: (txRef, transactionId) =>
+    api.get(`/payments/verify/${txRef}`, { params: transactionId ? { transaction_id: transactionId } : {} }).then(r => r.data),
+};
+export const newsletterApi = {
+  subscribe: (d) => api.post('/subscribers', d).then(r => r.data),
+};
 export const authApi = {
   login: (d) => api.post('/auth/login', d).then(r => r.data),
   register: (d) => api.post('/auth/register', d).then(r => r.data),

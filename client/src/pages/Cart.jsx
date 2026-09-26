@@ -1,6 +1,6 @@
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import { resolveImage } from '../api/client';
+import { resolveProductImage } from '../api/images';
 export default function Cart() {
   const { items, remove, updateQty } = useCart();
   const total = items.reduce((s, i) => s + Number(i.price) * Number(i.qty || i.quantity || 1), 0);
@@ -12,7 +12,7 @@ export default function Cart() {
           <div className="space-y-3 sm:space-y-4">
             {items.map(it => (
               <div key={it.id} className="flex gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl items-center">
-                <img src={resolveImage(it.image)} alt={it.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0" />
+                <img src={resolveProductImage(it.image)} alt={it.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-purple900 text-sm sm:text-base truncate">{it.name}</h3>
                   <p className="text-xs sm:text-sm">₦{Number(it.price).toLocaleString()} × {it.qty||it.quantity||1}</p>

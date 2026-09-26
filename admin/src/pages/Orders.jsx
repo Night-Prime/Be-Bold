@@ -18,12 +18,24 @@ export default function Orders() {
   const update = async (id, status) => { await api.put(`/orders/${id}/status`, { status }); load(); };
   const filtered = list.filter(o => (!q || o.id.toLowerCase().includes(q.toLowerCase()) || (o.user_name || '').toLowerCase().includes(q.toLowerCase())) && (!filter || o.status === filter));
   const counts = { total: list.length, pending: list.filter(o => o.status === 'pending').length, paid: list.filter(o => o.status === 'paid').length };
+  const revenue = list.filter(o => ['paid', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + Number(o.total || 0), 0);
+  const pendingValue = list.filter(o => o.status === 'pending').reduce((s, o) => s + Number(o.total || 0), 0);
+  const totalValue = list.reduce((s, o) => s + Number(o.total || 0), 0);
   return (
     <div className="space-y-5">
       <div>
         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-purple100 text-[11px] font-bold tracking-[0.16em] text-purple800">{list.length} ORDERS</span>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-purple900 flex items-center gap-3"><span className="w-9 h-9 rounded-xl bg-purple900 text-white grid place-items-center"><ShoppingBag className="w-4 h-4" /></span> Orders</h1>
         <p className="text-sm text-purple800/50 mt-1">Track and fulfill bold beauty orders.</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[{ k: 'Revenue (paid)', v: `₦${revenue.toLocaleString()}` }, { k: 'Pending value', v: `₦${pendingValue.toLocaleString()}` }, { k: 'Total order value', v: `₦${totalValue.toLocaleString()}` }].map(s => (
+          <div key={s.k} className="bg-purple900 rounded-2xl p-4 text-purple100">
+            <p className="text-[11px] font-bold tracking-widest text-purple100/50">{s.k.toUpperCase()}</p>
+            <p className="text-2xl font-bold mt-1">{s.v}</p>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-3 gap-3">

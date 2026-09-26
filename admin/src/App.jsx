@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Package, Layers, ShoppingBag, LogOut, Star, Menu, X, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Package, Layers, ShoppingBag, Mail, LogOut, Star, Menu, X, Sparkles } from 'lucide-react';
 import Login from './pages/Login';
 import Products from './pages/Products';
 import Categories from './pages/Categories';
 import Orders from './pages/Orders';
+import Subscribers from './pages/Subscribers';
 import Dashboard from './pages/Dashboard';
 
 function NavItem({ to, icon: Icon, label, active, onClick }) {
@@ -27,6 +28,7 @@ function Shell({ children }) {
     { to: '/products', label: 'Products', icon: Package },
     { to: '/categories', label: 'Categories', icon: Layers },
     { to: '/orders', label: 'Orders', icon: ShoppingBag },
+    { to: '/subscribers', label: 'Email List', icon: Mail },
   ];
   return (
     <div className="min-h-screen bg-purple50 flex">
@@ -104,6 +106,7 @@ export default function App() {
         <Route path="/products" element={<Guard><Products /></Guard>} />
         <Route path="/categories" element={<Guard><Categories /></Guard>} />
         <Route path="/orders" element={<Guard><Orders /></Guard>} />
+        <Route path="/subscribers" element={<Guard><Subscribers /></Guard>} />
       </Routes>
     </BrowserRouter>
   );
